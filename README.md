@@ -73,12 +73,18 @@ Follow these steps to get the project up and running:
     api_key = YOUR_API_KEY
     interface = lan
     port = 443 # Optional: Specify the port if not 443 (e.g., 20443)
-    verify_ssl = false # Set to true if you have a valid SSL certificate on your pfSense instance
-    use_https = false # Set to true to use https, false to use http
+    # Set to true if you have a valid SSL certificate on your pfSense instance
+    verify_ssl = false
+    # Set to true to use https, false to use http
+    use_https = false
 
     [ip_range]
     start = 192.168.1.10
     end = 192.168.1.99
+
+    [auth]
+    username = admin
+    password_hash = your_hashed_password
     ```
 
     **Note on SSL Verification:** By default, `verify_ssl` is set to `false`. This is not recommended for production environments. If you have a proper certificate setup for your pfSense web interface, set this to `true`.
