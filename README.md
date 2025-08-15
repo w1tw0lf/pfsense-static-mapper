@@ -42,7 +42,7 @@ Follow these steps to get the project up and running:
 
     ```bash
     git clone https://github.com/w1tw0lf/pfsense-static-mapper.git
-    cd pfsense_static_mapper
+    cd pfsense-static-mapper
     ```
 
 3. **Install dependencies:**
@@ -141,4 +141,3 @@ gunicorn --workers 4 --bind 0.0.0.0:8000 wsgi:app
 ```
 
 For more information on Gunicorn configuration, please refer to the [Gunicorn documentation](https://gunicorn.org/).
-
