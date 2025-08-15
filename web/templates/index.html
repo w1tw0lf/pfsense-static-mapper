@@ -21,6 +21,9 @@
 <body>
     <div class="container">
         <h1>Add New Static Mapping</h1>
+        {% if available_ips_count is not none %}
+            <p>Available Static Mappings: {{ available_ips_count }}</p>
+        {% endif %}
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -36,16 +39,16 @@
         <form method="post">
             {{ form.hidden_tag() }}
             <div>
-                {{ form.name.label }}<br>
-                {{ form.name(size=32) }}
-                {% for error in form.name.errors %}
+                {{ form.hostname.label }}<br>
+                {{ form.hostname(size=32) }}
+                {% for error in form.hostname.errors %}
                     <span class="errors">[{{ error }}]</span>
                 {% endfor %}
             </div>
             <div>
-                {{ form.surname.label }}<br>
-                {{ form.surname(size=32) }}
-                {% for error in form.surname.errors %}
+                {{ form.description.label }}<br>
+                {{ form.description(size=32) }}
+                {% for error in form.description.errors %}
                     <span class="errors">[{{ error }}]</span>
                 {% endfor %}
             </div>

@@ -8,10 +8,6 @@ verify_ssl = false
 # Set to true to use https, false to use http
 use_https = false
 
-[ip_range]
-start = 192.168.1.10
-end = 192.168.1.99
-
 [auth]
 username = admin
 password_hash = your_hashed_password

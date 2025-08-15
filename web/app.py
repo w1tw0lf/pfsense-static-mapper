@@ -6,11 +6,14 @@ from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import DataRequired, Regexp
 from flask_wtf.csrf import CSRFProtect
 from static_mapping.core import create_static_mapping_entry
+from static_mapping.utils import count_available_ips
 from static_mapping.config import load_config
+from static_mapping.api import PfSenseAPI
 from werkzeug.security import check_password_hash
 from datetime import timedelta
 import logging
 from logging.handlers import RotatingFileHandler
+import configparser
 
 app = Flask(__name__)
 
@@ -38,8 +41,8 @@ def before_request():
 config = load_config()
 
 class MappingForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    surname = StringField('Surname', validators=[DataRequired()])
+    hostname = StringField('Hostname', validators=[DataRequired()])
+    description = StringField('Description', validators=[DataRequired()])
     mac_address = StringField('MAC Address', validators=[
         DataRequired(),
         Regexp(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$',
@@ -92,15 +95,29 @@ def logout():
 @login_required
 def index():
     form = MappingForm()
+
+    # Load config for PfSenseAPI initialization
+    pfsense_config = configparser.ConfigParser()
+    pfsense_config.read('config.ini')
+
+    # Initialize PfSenseAPI
+    pfsense_api = PfSenseAPI(pfsense_config)
+
+    # Get existing mappings and DHCP range for available IP count
+    existing_maps = pfsense_api.get_existing_static_mappings()
+    interface_ip, interface_subnet = pfsense_api.get_interface_details()
+    dhcp_range_from, dhcp_range_to = pfsense_api.get_dhcp_range()
+
+    available_ips_count = 0
+    if interface_ip and interface_subnet and dhcp_range_from and dhcp_range_to:
+        available_ips_count = count_available_ips(existing_maps, interface_ip, interface_subnet, dhcp_range_from, dhcp_range_to)
+
     if form.validate_on_submit():
-        name = form.name.data
-        surname = form.surname.data
+        hostname = form.hostname.data
+        description = form.description.data
         mac_address = form.mac_address.data
 
-        hostname = f"{name.lower()}-{surname.lower()}"
-        description = f"{name.capitalize()} {surname.capitalize()}"
-
-        success, message = create_static_mapping_entry(mac_address, hostname, description)
+        success, message, _ = create_static_mapping_entry(mac_address, hostname, description, app.logger)
 
         if success:
             flash(message, 'success')
@@ -117,7 +134,7 @@ def index():
             success_flag = True
             break
             
-    return render_template('index.html', form=form, messages=messages, success_flag=success_flag)
+    return render_template('index.html', form=form, messages=messages, success_flag=success_flag, available_ips_count=available_ips_count)
 
 if __name__ == '__main__':
     app.run()

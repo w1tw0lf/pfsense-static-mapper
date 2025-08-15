@@ -36,8 +36,36 @@ class PfSenseAPI:
             static_maps = data.get("staticmap", []) # Assuming 'staticmap' is still the key
             return static_maps
         except requests.exceptions.RequestException as e:
-            print(f"Error fetching existing static mappings: {e}")
-            return []
+            raise e
+
+    def get_interface_details(self):
+        """Retrieves details for the configured interface, including IP and subnet."""
+        url = f"{self.base_url}/interface?id={self.interface}"
+        try:
+            response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl)
+            response.raise_for_status()
+            json_response = response.json()
+            data = json_response.get("data", {})
+            # Assuming the API returns 'ipaddr' and 'subnet' for the interface
+            ip_address = data.get("ipaddr")
+            subnet = data.get("subnet")
+            return ip_address, subnet
+        except requests.exceptions.RequestException as e:
+            raise e
+
+    def get_dhcp_range(self):
+        """Retrieves the DHCP range for the configured interface."""
+        url = f"{self.base_url}/services/dhcp_server?id={self.interface}"
+        try:
+            response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl)
+            response.raise_for_status()
+            json_response = response.json()
+            data = json_response.get("data", {})
+            range_from = data.get("range_from")
+            range_to = data.get("range_to")
+            return range_from, range_to
+        except requests.exceptions.RequestException as e:
+            raise e
 
     def create_static_mapping(self, mac_address, ip_address, hostname, description):
         """Creates a new static mapping."""
@@ -77,8 +105,7 @@ class PfSenseAPI:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error creating static mapping: {e}")
-            return None
+            raise e
 
     def apply_changes(self):
         """Applies pending changes to the DHCP server."""
@@ -90,7 +117,4 @@ class PfSenseAPI:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error applying changes: {e}")
-            return None
-
-    
+            raise e
