@@ -22,12 +22,23 @@ Follow these steps to get the project up and running:
     * **Install `pfREST`:**
         Connect to your pfSense firewall via SSH or console and run the following command:
 
+        Install on pfSense CE:
+
         ```bash
-        pkg install pfSense-pkg-restapi
+        pkg-static add https://github.com/jaredhendrickson13/pfsense-api/releases/latest/download/pfSense-2.8.0-pkg-RESTAPI.pkg
+        ```
+
+        Install on pfSense Plus:
+
+        ```bash
+        pkg-static -C /dev/null add https://github.com/jaredhendrickson13/pfsense-api/releases/latest/download/pfSense-24.11-pkg-RESTAPI.pkg
         ```
 
     * **Configure REST API:**
         Navigate to **System > REST API** in your pfSense webConfigurator.
+
+    * **Set Allowed Interfaces:**
+        Under **System > REST API > Settings**, set the **Allowed Interfaces** to `key`.
 
     * **Set Authentication Method:**
         Under **System > REST API > Settings**, set the **Authentication Methods** to `key`.
