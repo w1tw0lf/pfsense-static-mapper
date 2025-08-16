@@ -67,10 +67,10 @@
 
         {% if success_flag %}
             <p>Would you like to add another?</p>
-            <a href="/"><button>Add Another Mapping</button></a>
+            <a href="{{ url_for('views.index') }}"><button>Add Another Mapping</button></a>
         {% endif %}
         <hr>
-        <a href="{{ url_for('logout') }}"><button>Logout</button></a>
+        <a href="{{ url_for('auth.logout') }}"><button>Logout</button></a>
     </div>
     <script>
         (function() {
@@ -84,7 +84,7 @@
 
             function logout() {
                 alert("You are being logged out due to inactivity.");
-                window.location.href = "{{ url_for('logout') }}";
+                window.location.href = "{{ url_for('auth.logout') }}";
             }
 
             document.addEventListener("mousemove", resetTimer, false);
