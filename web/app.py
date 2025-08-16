@@ -23,7 +23,6 @@ if not os.path.exists('logs'):
 file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s: %(message)s'))
-file_handler.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
 app.logger.setLevel(logging.INFO)
 app.logger.info('Application startup')
@@ -101,7 +100,7 @@ def index():
     pfsense_config.read('config.ini')
 
     # Initialize PfSenseAPI
-    pfsense_api = PfSenseAPI(pfsense_config)
+    pfsense_api = PfSenseAPI(pfsense_config, app.logger)
 
     # Get existing mappings and DHCP range for available IP count
     existing_maps = pfsense_api.get_existing_static_mappings()

@@ -78,10 +78,6 @@ Follow these steps to get the project up and running:
     # Set to true to use https, false to use http
     use_https = false
 
-    [ip_range]
-    start = 192.168.1.10
-    end = 192.168.1.99
-
     [auth]
     username = admin
     password_hash = your_hashed_password
@@ -141,11 +137,9 @@ Once the server is running, open your web browser and navigate to the address di
 
 On the web page, you can enter the following:
 
-* **Name:** The first name of the user/device.
-* **Surname:** The last name of the user/device.
+* **Hostname:** The desired hostname for the device.
+* **Description:** A description for the static mapping entry.
 * **MAC Address:** The MAC address of the device.
-
-The web interface will automatically generate the `hostname` as `name-surname` (e.g., `john-doe`) and the `description` as `Name Surname` (e.g., `John Doe`).
 
 ## Production Deployment
 

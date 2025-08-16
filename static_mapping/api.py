@@ -1,16 +1,17 @@
 import requests
-import json # Import json for dummy response
+import json
+import logging
 
 class PfSenseAPI:
-    def __init__(self, config):
+    def __init__(self, config, logger=None):
+        self.logger = logger or logging.getLogger(__name__)
         self.pfsense_ip = config.get('pfsense', 'ip')
         self.api_key = config.get('pfsense', 'api_key')
         self.interface = config.get('pfsense', 'interface')
         self.verify_ssl = config.getboolean('pfsense', 'verify_ssl')
-        self.port = config.get('pfsense', 'port', fallback='') # Get port, default to empty string
+        self.port = config.get('pfsense', 'port', fallback='')
         self.use_https = config.getboolean('pfsense', 'use_https', fallback=True)
 
-        # Construct base URL with port if provided, and use /api/v2
         scheme = "https" if self.use_https else "http"
         if self.port:
             self.base_url = f"{scheme}://{self.pfsense_ip}:{self.port}/api/v2"
@@ -18,43 +19,39 @@ class PfSenseAPI:
             self.base_url = f"{scheme}://{self.pfsense_ip}/api/v2"
 
     def _get_headers(self):
-        """Returns common headers (like X-API-Key) for pfSense API authentication."""
         return {
             "X-API-Key": self.api_key,
             "Accept": "application/json"
         }
 
     def get_existing_static_mappings(self):
-        """Retrieves existing static mappings for the configured interface."""
-        # Using the endpoint confirmed by the user's working curl command
         url = f"{self.base_url}/services/dhcp_server?id={self.interface}"
         try:
             response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl)
             response.raise_for_status()
             json_response = response.json()
             data = json_response.get("data", {})
-            static_maps = data.get("staticmap", []) # Assuming 'staticmap' is still the key
+            static_maps = data.get("staticmap", [])
             return static_maps
         except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error getting existing static mappings: {e}")
             raise e
 
     def get_interface_details(self):
-        """Retrieves details for the configured interface, including IP and subnet."""
         url = f"{self.base_url}/interface?id={self.interface}"
         try:
             response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl)
             response.raise_for_status()
             json_response = response.json()
             data = json_response.get("data", {})
-            # Assuming the API returns 'ipaddr' and 'subnet' for the interface
             ip_address = data.get("ipaddr")
             subnet = data.get("subnet")
             return ip_address, subnet
         except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error getting interface details: {e}")
             raise e
 
     def get_dhcp_range(self):
-        """Retrieves the DHCP range for the configured interface."""
         url = f"{self.base_url}/services/dhcp_server?id={self.interface}"
         try:
             response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl)
@@ -65,11 +62,10 @@ class PfSenseAPI:
             range_to = data.get("range_to")
             return range_from, range_to
         except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error getting DHCP range: {e}")
             raise e
 
     def create_static_mapping(self, mac_address, ip_address, hostname, description):
-        """Creates a new static mapping."""
-        # Endpoint for creating static mappings remains the same
         url = f"{self.base_url}/services/dhcp_server/static_mapping"
         payload = {
             "parent_id": self.interface,
@@ -78,25 +74,16 @@ class PfSenseAPI:
             "cid": hostname,
             "hostname": hostname,
             "domain": "",
-            "domainsearchlist": [
-                ""
-            ],
+            "domainsearchlist": [""],
             "defaultleasetime": 7200,
             "maxleasetime": 86400,
             "gateway": "",
-            "dnsserver": [
-                ""
-            ],
-            "winsserver": [
-                ""
-            ],
-            "ntpserver": [
-                ""
-            ],
+            "dnsserver": [""],
+            "winsserver": [""],
+            "ntpserver": [""],
             "arp_table_static_entry": False,
             "descr": description
         }
-        # Add Content-Type header specifically for POST requests
         headers = self._get_headers()
         headers["Content-Type"] = "application/json"
         
@@ -105,10 +92,10 @@ class PfSenseAPI:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error creating static mapping: {e}")
             raise e
 
     def apply_changes(self):
-        """Applies pending changes to the DHCP server."""
         url = f"{self.base_url}/services/dhcp_server/apply"
         headers = self._get_headers()
         headers["Content-Type"] = "application/json"
@@ -117,4 +104,5 @@ class PfSenseAPI:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error applying changes: {e}")
             raise e
