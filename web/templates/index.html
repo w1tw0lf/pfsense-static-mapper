@@ -22,7 +22,7 @@
     <div class="container">
         <h1>Add New Static Mapping</h1>
         {% if available_ips_count is not none %}
-            <p>Available Static Mappings: {{ available_ips_count }}</p>
+            <p id="available-ips">Available Static Mappings: {{ available_ips_count }}</p>
         {% endif %}
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -38,6 +38,13 @@
         {% if not success_flag %}
         <form method="post">
             {{ form.hidden_tag() }}
+            <div>
+                {{ form.interface.label }}<br>
+                {{ form.interface() }}
+                {% for error in form.interface.errors %}
+                    <span class="errors">[{{ error }}]</span>
+                {% endfor %}
+            </div>
             <div>
                 {{ form.hostname.label }}<br>
                 {{ form.hostname(size=32) }}
@@ -94,6 +101,25 @@
 
             resetTimer(); // Start the timer
         })();
+
+        document.querySelectorAll('input[name="interface"]').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                var interface = this.value;
+                if (interface) {
+                    fetch('/get_available_ips/' + interface)
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById('available-ips').innerText = 'Available Static Mappings: ' + data;
+                        });
+                }
+            });
+        });
+
+        // Trigger change event for the initially selected radio button on page load
+        var initialInterface = document.querySelector('input[name="interface"]:checked');
+        if (initialInterface) {
+            initialInterface.dispatchEvent(new Event('change'));
+        }
     </script>
 </body>
 </html>

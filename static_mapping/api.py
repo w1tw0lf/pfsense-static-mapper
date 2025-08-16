@@ -24,8 +24,10 @@ class PfSenseAPI:
             "Accept": "application/json"
         }
 
-    def get_existing_static_mappings(self):
-        url = f"{self.base_url}/services/dhcp_server?id={self.interface}"
+    def get_existing_static_mappings(self, interface=None):
+        if not interface:
+            interface = self.interface
+        url = f"{self.base_url}/services/dhcp_server?id={interface}"
         try:
             response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl)
             response.raise_for_status()
@@ -37,8 +39,10 @@ class PfSenseAPI:
             self.logger.error(f"Error getting existing static mappings: {e}")
             raise e
 
-    def get_interface_details(self):
-        url = f"{self.base_url}/interface?id={self.interface}"
+    def get_interface_details(self, interface=None):
+        if not interface:
+            interface = self.interface
+        url = f"{self.base_url}/interface?id={interface}"
         try:
             response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl)
             response.raise_for_status()
@@ -46,13 +50,16 @@ class PfSenseAPI:
             data = json_response.get("data", {})
             ip_address = data.get("ipaddr")
             subnet = data.get("subnet")
-            return ip_address, subnet
+            description = data.get("descr")
+            return ip_address, subnet, description
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error getting interface details: {e}")
             raise e
 
-    def get_dhcp_range(self):
-        url = f"{self.base_url}/services/dhcp_server?id={self.interface}"
+    def get_dhcp_range(self, interface=None):
+        if not interface:
+            interface = self.interface
+        url = f"{self.base_url}/services/dhcp_server?id={interface}"
         try:
             response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl)
             response.raise_for_status()
@@ -65,10 +72,10 @@ class PfSenseAPI:
             self.logger.error(f"Error getting DHCP range: {e}")
             raise e
 
-    def create_static_mapping(self, mac_address, ip_address, hostname, description):
+    def create_static_mapping(self, interface, mac_address, ip_address, hostname, description):
         url = f"{self.base_url}/services/dhcp_server/static_mapping"
         payload = {
-            "parent_id": self.interface,
+            "parent_id": interface,
             "mac": mac_address,
             "ipaddr": ip_address,
             "cid": hostname,
@@ -106,3 +113,34 @@ class PfSenseAPI:
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error applying changes: {e}")
             raise e
+
+    def get_available_interfaces(self):
+        url = f"{self.base_url}/interface/available_interfaces?limit=0&offset=0"
+        try:
+            response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl)
+            response.raise_for_status()
+            json_response = response.json()
+            return json_response.get("data", [])
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error getting available interfaces: {e}")
+            raise e
+
+    def get_dhcp_server_interfaces(self):
+        available_interfaces = self.get_available_interfaces()
+        dhcp_interfaces = []
+        for iface in available_interfaces:
+            interface_id = iface.get('in_use_by')
+            if not interface_id:
+                continue
+
+            url = f"{self.base_url}/services/dhcp_server?id={interface_id}"
+            try:
+                response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl)
+                if response.status_code == 200:
+                    json_response = response.json()
+                    data = json_response.get("data", {})
+                    if data.get('enable'):
+                        dhcp_interfaces.append(interface_id)
+            except requests.exceptions.RequestException as e:
+                self.logger.error(f"Error checking DHCP server for interface {interface_id}: {e}")
+        return dhcp_interfaces

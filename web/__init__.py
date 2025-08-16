@@ -16,6 +16,7 @@ def create_app():
         '%(asctime)s %(levelname)s: %(message)s'))
     app.logger.addHandler(file_handler)
     app.logger.setLevel(logging.INFO)
+    app.logger.info('Application startup')
 
     app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'dev')
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=2)

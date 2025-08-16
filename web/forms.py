@@ -1,8 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField
+from wtforms import StringField, SubmitField, PasswordField, RadioField
 from wtforms.validators import DataRequired, Regexp
 
 class MappingForm(FlaskForm):
+    interface = RadioField('Interface', choices=[], validators=[DataRequired()])
     hostname = StringField('Hostname', validators=[DataRequired()])
     description = StringField('Description', validators=[DataRequired()])
     mac_address = StringField('MAC Address', validators=[

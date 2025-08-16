@@ -137,6 +137,7 @@ Once the server is running, open your web browser and navigate to the address di
 
 On the web page, you can enter the following:
 
+* **Interface:** Select the desired network interface from the list of available interfaces with DHCP server enabled. The list displays the interface description (e.g., "lan2") along with its IP address and subnet.
 * **Hostname:** The desired hostname for the device.
 * **Description:** A description for the static mapping entry.
 * **MAC Address:** The MAC address of the device.
