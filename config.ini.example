@@ -1,7 +1,7 @@
 [pfsense]
 ip = YOUR_PFSENSE_IP
 api_key = YOUR_API_KEY
-interface = lan
+
 port = 443 # Optional: Specify the port if not 443 (e.g., 20443)
 # Set to true if you have a valid SSL certificate on your pfSense instance
 verify_ssl = false
